@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz: Hào Quang Của Bạn Mang Màu Gì? - Ghost in the Cell</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: #fff;
+        }
+        .container {
+            width: 90%;
+            max-width: 550px;
+            background: rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            margin: 20px 0;
+        }
+        h1 {
+            margin-top: 0;
+            font-size: 24px;
+            color: #ffd700;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+            letter-spacing: 1px;
+        }
+        .subtitle {
+            text-align: center;
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 25px;
+            line-height: 1.4;
+        }
+        #quiz-screen, #loading-screen, #result-screen {
+            display: none;
+        }
+        #start-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .desc-intro {
+            font-size: 15px;
+            color: #ddd;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+        button, .option-btn {
+            width: 100%;
+            padding: 14px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .start-btn {
+            background: linear-gradient(135deg, #f12711, #f5af19);
+            color: white;
+            font-size: 18px;
+            border-radius: 30px;
+        }
+        .start-btn:hover {
+            transform: scale(1.02);
+            opacity: 0.9;
+        }
+        .question-title {
+            font-size: 18px;
+            color: #ffcc00;
+            margin-bottom: 20px;
+            font-weight: bold;
+            line-height: 1.4;
+        }
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .option-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            text-align: left;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .option-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: #ffd700;
+            transform: translateY(-2px);
+        }
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: #f5af19;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        #loading-screen {
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-height: 250px;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255,255,255,0.2);
+            border-top: 5px solid #f5af19;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading-text {
+            font-size: 16px;
+            color: #ddd;
+        }
+        .result-header {
+            font-size: 14px;
+            color: #aaa;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        .result-title {
+            font-size: 24px;
+            color: #ffd700;
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+        .result-subtitle {
+            font-size: 18px;
+            color: #fff;
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .result-desc {
+            font-size: 15px;
+            color: #ddd;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.25);
+            padding: 15px;
+            border-radius: 10px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            border-left: 4px solid #ffd700;
+        }
+        .restart-btn {
+            background: #2ed573;
+            color: white;
+            border-radius: 30px;
+            margin-top: 10px;
+        }
+        .restart-btn:hover {
+            background: #26af5f;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Màn hình bắt đầu -->
+        <div id="start-screen">
+            <h1>🔮 HÀO QUANG CỦA BẠN MANG MÀU GÌ?</h1>
+            <div class="subtitle">Ghost in the Cell Official Quiz</div>
+            <p class="desc-intro">Trong <i>Ghost in the Cell</i>, mỗi người đều mang một màu hào quang phản chiếu nội tâm của mình. Liệu năng lượng tiềm ẩn nào đang bao quanh bạn?</p>
+            <button class="start-btn" onclick="startQuiz()">BẮT ĐẦU KHÁM PHÁ</button>
+        </div>
+
+        <!-- Màn hình câu hỏi -->
+        <div id="quiz-screen">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <div class="question-title" id="question-title"></div>
+            <div class="options-container" id="options-container"></div>
+        </div>
+
+        <!-- Màn hình phân tích -->
+        <div id="loading-screen">
+            <div class="spinner"></div>
+            <div class="loading-text" id="loading-text">Đang phân tích tần số hào quang...</div>
+        </div>
+
+        <!-- Màn hình kết quả -->
+        <div id="result-screen">
+            <div class="result-header">HÀO QUANG CỦA BẠN LÀ</div>
+            <div class="result-title" id="res-aura-name"></div>
+            <div class="result-subtitle" id="res-aura-subtitle"></div>
+            <div class="result-desc" id="res-aura-desc"></div>
+            <button class="restart-btn" onclick="restartQuiz()">Làm Lại Trắc Nghiệm</button>
+        </div>
+    </div>
+
+<script>
+    const questions = [
+        {
+            title: "CÂU 1: Khi gặp một người từng làm bạn tổn thương, phản ứng đầu tiên của bạn là gì?",
+            options: [
+                { text: "🅰️ Mỉm cười và xem như chuyện đã qua.", type: "A" },
+                { text: "🅱️ Giữ bình tĩnh nhưng vẫn còn dè chừng.", type: "B" },
+                { text: "🅲️ Tim đập nhanh, cảm xúc lẫn lộn.", type: "C" },
+                { text: "🅳️ Cơn giận lại bùng lên.", type: "D" }
+            ]
+        },
+        {
+            title: "CÂU 2: Bạn thường đưa ra quyết định dựa trên điều gì?",
+            options: [
+                { text: "🅰️ Lý trí.", type: "B" },
+                { text: "🅱️ Cảm xúc.", type: "C" },
+                { text: "🅲️ Hoàn cảnh lúc đó.", type: "C" },
+                { text: "🅳️ Trực giác.", type: "B" }
+            ]
+        },
+        {
+            title: "CÂU 3: Khi một cuộc tranh cãi nổ ra, bạn sẽ...",
+            options: [
+                { text: "🅰️ Đứng ra hòa giải.", type: "A" },
+                { text: "🅱️ Quan sát rồi mới lên tiếng.", type: "B" },
+                { text: "🅲️ Tránh xa vì không muốn liên quan.", type: "C" },
+                { text: "🅳️ Bảo vệ quan điểm đến cùng.", type: "D" }
+            ]
+        },
+        {
+            title: "CÂU 4: Điều khiến bạn khó buông bỏ nhất là...",
+            options: [
+                { text: "🅰️ Một lời nói dối.", type: "D" },
+                { text: "🅱️ Một sự phản bội.", type: "D" },
+                { text: "🅲️ Một quyết định sai lầm của chính mình.", type: "C" },
+                { text: "🅳️ Những chuyện đã qua thì không cần giữ mãi.", type: "A" }
+            ]
+        },
+        {
+            title: "CÂU 5: Khi ở một mình, bạn thường...",
+            options: [
+                { text: "🅰️ Suy ngẫm về bản thân.", type: "B" },
+                { text: "🅱️ Lập kế hoạch cho tương lai.", type: "B" },
+                { text: "🅲️ Nghĩ về những điều chưa giải quyết.", type: "C" },
+                { text: "🅳️ Tìm cách thư giãn, không nghĩ gì cả.", type: "A" }
+            ]
+        },
+        {
+            title: "CÂU 6: Bạn bè thường nhận xét bạn là người...",
+            options: [
+                { text: "🅰️ Điềm tĩnh.", type: "A" },
+                { text: "🅱️ Chính trực.", type: "B" },
+                { text: "🅲️ Khó đoán.", type: "C" },
+                { text: "🅳️ Nóng tính.", type: "D" }
+            ]
+        },
+        {
+            title: "CÂU 7: Điều nào khiến bạn khó chịu nhất?",
+            options: [
+                { text: "🅰️ Sự bất công.", type: "D" },
+                { text: "🅱️ Bị hiểu lầm.", type: "C" },
+                { text: "🅲️ Sự giả dối.", type: "D" },
+                { text: "🅳️ Bị bỏ rơi.", type: "C" }
+            ]
+        },
+        {
+            title: "CÂU 8: Nếu chỉ được chọn một điều, bạn mong muốn...",
+            options: [
+                { text: "🅰️ Bình yên.", type: "A" },
+                { text: "🅱️ Công bằng.", type: "B" },
+                { text: "🅲️ Được thấu hiểu.", type: "C" },
+                { text: "🅳️ Không phải hối tiếc.", type: "A" }
+            ]
+        }
+    ];
+
+    const resultsData = {
+        yellow: {
+            name: "🟡 HÀO QUANG VÀNG",
+            subtitle: "BÌNH YÊN TRONG TÂM HỒN",
+            desc: "Bạn biết chấp nhận, biết buông bỏ và không để cảm xúc tiêu cực điều khiển cuộc sống.<br><br><b>Sự bình yên là sức mạnh lớn nhất.</b>"
+        },
+        lightblue: {
+            name: "🔵 HÀO QUANG XANH NHẠT",
+            subtitle: "TRUNG THỰC & KHÔN NGOAN",
+            desc: "Bạn hành động bằng lý trí, đề cao sự chân thành và luôn cố gắng làm điều đúng.<br><br><b>Bạn tin rằng mọi lựa chọn đều có hậu quả.</b>"
+        },
+        purple: {
+            name: "🟣 HÀO QUANG CHÀM",
+            subtitle: "MÂU THUẪN",
+            desc: "Bạn luôn giằng co giữa cảm xúc và lý trí. Đó là điều khiến bạn trở nên khó đoán.<br><br><b>Bạn vẫn đang tìm câu trả lời cho chính mình.</b>"
+        },
+        green: {
+            name: "🟢 HÀO QUANG XANH LÁ",
+            subtitle: "THỜ Ơ",
+            desc: "Bạn không thích bị cuốn vào những xung đột. Sự bình lặng là điều bạn ưu tiên.<br><br><b>Đôi khi đứng ngoài cũng là một lựa chọn.</b>"
+        },
+        red: {
+            name: "🔴 HÀO QUANG ĐỎ",
+            subtitle: "GIẬN DỮ",
+            desc: "Bạn phản ứng mạnh trước bất công và không dễ bỏ qua những điều làm mình tổn thương.<br><br><b>Hãy cẩn thận, cơn giận có thể che mờ lý trí.</b>"
+        },
+        brown: {
+            name: "🟤 HÀO QUANG NÂU ĐẬM",
+            subtitle: "UẤT ỨC DỒN NÉN",
+            desc: "Bạn mang theo những cảm xúc chưa được giải tỏa. Chúng âm thầm ảnh hưởng đến cách bạn nhìn nhận mọi việc.<br><br><b>Chữa lành đôi khi là hành trình khó khăn nhất.</b>"
+        },
+        grey: {
+            name: "⚪ HÀO QUANG XÁM",
+            subtitle: "HỖN LOẠN",
+            desc: "Bạn đang ở giai đoạn nhiều cảm xúc đan xen. Không phải vì bạn yếu đuối, mà vì bạn đang phải đối diện với quá nhiều điều cùng lúc.<br><br><b>Ngay cả trong hỗn loạn, bạn vẫn có thể tìm thấy hướng đi của mình.</b>"
+        }
+    };
+
+    let currentQuestion = 0;
+    let scores = { A: 0, B: 0, C: 0, D: 0 };
+
+    const startScreen = document.getElementById('start-screen');
+    const quizScreen = document.getElementById('quiz-screen');
+    const loadingScreen = document.getElementById('loading-screen');
+    const resultScreen = document.getElementById('result-screen');
+    const questionTitle = document.getElementById('question-title');
+    const optionsContainer = document.getElementById('options-container');
+    const progressFill = document.getElementById('progress-fill');
+
+    function startQuiz() {
+        startScreen.style.display = 'none';
+        quizScreen.style.display = 'block';
+        currentQuestion = 0;
+        scores = { A: 0, B: 0, C: 0, D: 0 };
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        if (currentQuestion < questions.length) {
+            const q = questions[currentQuestion];
+            questionTitle.textContent = q.title;
+            optionsContainer.innerHTML = '';
+            
+            // Cập nhật thanh tiến độ
+            const progress = ((currentQuestion) / questions.length) * 100;
+            progressFill.style.width = progress + '%';
+
+            q.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = opt.text;
+                btn.onclick = () => selectOption(opt.type);
+                optionsContainer.appendChild(btn);
+            });
+        } else {
+            showLoading();
+        }
+    }
+
+    function selectOption(type) {
+        scores[type]++;
+        currentQuestion++;
+        loadQuestion();
+    }
+
+    function showLoading() {
+        quizScreen.style.display = 'none';
+        loadingScreen.style.display = 'flex';
+
+        const loadingTexts = [
+            "Đang kết nối tần số nội tâm...",
+            "Đọc vị các lớp năng lượng...",
+            "Đối chiếu sắc thái hào quang...",
+            "Hoàn tất kết quả của bạn!"
+        ];
+
+        let index = 0;
+        const textEl = document.getElementById('loading-text');
+        
+        let interval = setInterval(() => {
+            index++;
+            if (index < loadingTexts.length) {
+                textEl.textContent = loadingTexts[index];
+            } else {
+                clearInterval(interval);
+                calculateResult();
+            }
+        }, 600);
+    }
+
+    function calculateResult() {
+        loadingScreen.style.display = 'none';
+        resultScreen.style.display = 'block';
+
+        const { A, B, C, D } = scores;
+        const total = A + B + C + D;
+        const maxScore = Math.max(A, B, C, D);
+
+        // Kiểm tra điều kiện phân tán đều hoặc không nổi trội (Xám)
+        // Nếu chênh lệch giữa max và các điểm khác không rõ hoặc điểm phân tán đều
+        let resKey = 'grey';
+
+        if (maxScore < 3 && Math.abs(A - B) <= 1 && Math.abs(B - C) <= 1) {
+            resKey = 'grey';
+        } else if (A >= 3 && A >= B && A >= C && A >= D) {
+            resKey = 'yellow';
+        } else if ((B >= 3 || (A >= 2 && B >= 2)) && B >= C && B >= D) {
+            resKey = 'lightblue';
+        } else if (C >= 3 && C >= A && C >= B && C >= D) {
+            resKey = 'purple';
+        } else if (C >= 3 && (currentQuestionCountMatchOption('C'))) { // logic tùy biến bổ sung
+            resKey = 'green';
+        } else if (D >= 3 && D >= A && D >= B) {
+            resKey = 'red';
+        } else if ((B >= 2 || D >= 2) && (C >= 2 || D >= 2) && (D >= 3 || (scores.B + scores.D >= 4))) {
+            resKey = 'brown';
+        } else {
+            // Xét theo tỉ lệ cao nhất đơn thuần
+            if (A === maxScore) resKey = 'yellow';
+            else if (B === maxScore) resKey = 'lightblue';
+            else if (C === maxScore) resKey = 'purple';
+            else if (D === maxScore) resKey = 'red';
+        }
+
+        // Áp chính xác theo ma trận đề bài yêu cầu
+        const finalRes = resultsData[resKey] || resultsData['grey'];
+
+        document.getElementById('res-aura-name').textContent = finalRes.name;
+        document.getElementById('res-aura-subtitle').textContent = finalRes.subtitle;
+        document.getElementById('res-aura-desc').innerHTML = finalRes.desc;
+    }
+
+    function currentQuestionCountMatchOption(type) {
+        return scores[type] >= 3;
+    }
+
+    function restartQuiz() {
+        resultScreen.style.display = 'none';
+        startScreen.style.display = 'flex';
+    }
+</script>
+
+</body>
+</html>
